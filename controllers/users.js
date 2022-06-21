@@ -6,13 +6,13 @@ const getUsers = (req, res, next) => {
     .catch(next);
 };
 
-const createUser = (req, res, next) => {
+const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((user) => {
-      res.status(201).send({ data: user.toJSON() });
+      res.status(201).send({ data: user });
     })
-    .catch(next);
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
 const getUserById = (req, res, next) => {
