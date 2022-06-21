@@ -1,9 +1,9 @@
 const User = require('../models/user');
 
-const getUsers = (req, res, next) => {
+const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch(next);
+    .catch(() => res.send({ message: 'Произошла ошибка' }));
 };
 
 const createUser = (req, res) => {
@@ -15,14 +15,13 @@ const createUser = (req, res) => {
     .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
 };
 
-const getUserById = (req, res, next) => {
+const getUserById = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
-    .orFail(() => {
-      res.send('Такого пользователя не существует');
+    .then((user) => {
+      res.status(200).send({ data: user });
     })
-    .then((user) => res.send(user))
-    .catch(next);
+    .catch(() => res.status(404).send({ message: 'Такого пользователя не существует' }));
 };
 
 module.exports = {
