@@ -12,7 +12,7 @@ const createUser = (req, res) => {
     .then((user) => {
       res.status(201).send({ data: user });
     })
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
 };
 
 const getUserById = (req, res, next) => {
