@@ -21,7 +21,7 @@ const getUserById = (req, res) => {
     .then((user) => {
       res.status(200).send({ data: user });
     })
-    .catch(() => res.status(404).send({ message: 'Такого пользователя не существует' }));
+    .catch(() => res.status(400).send({ message: 'Такого пользователя не существует' }));
 };
 
 module.exports = {
