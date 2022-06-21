@@ -7,6 +7,7 @@ const {
   updateAvatar,
 } = require('../controllers/users');
 
+// Роуты пользователя
 router.get('/users', getUsers);
 router.get('/users/:userId', getUserById);
 router.post('/users', createUser);

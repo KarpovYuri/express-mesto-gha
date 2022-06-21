@@ -7,8 +7,9 @@ const {
   dislikeCard,
 } = require('../controllers/cards');
 
+// Роуты карточек
 cardRouter.get('/cards', getCards);
-cardRouter.get('/cards/:cardId', deleteCardById);
+cardRouter.delete('/cards/:cardId', deleteCardById);
 cardRouter.post('/cards', createCard);
 cardRouter.put('/cards/:cardId/likes', likeCard);
 cardRouter.delete('/cards/:cardId/likes', dislikeCard);

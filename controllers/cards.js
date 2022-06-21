@@ -3,9 +3,10 @@ const Card = require('../models/card');
 const getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send(cards))
-    .catch(() => res.send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(500).send({ message: 'Ошибка по умолчанию' }));
 };
 
+// Добавление карточки
 const createCard = (req, res) => {
   const owner = req.user._id;
   const { name, link } = req.body;
@@ -17,7 +18,13 @@ const createCard = (req, res) => {
     likes,
   })
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Переданы некорректные данные при создании карточки' });
+      } else {
+        res.status(500).send({ message: 'Ошибка по умолчанию' });
+      }
+    });
 };
 
 // Удаление карточки
@@ -39,26 +46,39 @@ const deleteCardById = (req, res) => {
     });
 };
 
-// Добавить лайк
+// Постановка лайка
 const likeCard = (req, res) => {
   const { cardId } = req.params;
   const { _id } = req.user;
-  Card.findByIdAndUpdate(cardId, { $addToSet: { likes: _id } }, { new: true, runValidators: true })
+  Card.findByIdAndUpdate(cardId, { $addToSet: { likes: _id } }, { new: true })
     .orFail(() => res.status(404).send({ message: 'Передан несуществующий _id карточки' }))
     .then((card) => res.send({ card }))
-    .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные для постановки лайка' });
+      } else {
+        res.status(500).send({ message: 'Ошибка по умолчанию' });
+      }
+    });
 };
 
-// Удалить лайк
+// Снятие лайк
 const dislikeCard = (req, res) => {
   const { cardId } = req.params;
   const { _id } = req.user;
-  Card.findByIdAndUpdate(cardId, { $pull: { likes: _id } }, { new: true, runValidators: true })
+  Card.findByIdAndUpdate(cardId, { $pull: { likes: _id } }, { new: true })
     .orFail(() => res.status(404).send({ message: 'Передан несуществующий _id карточки' }))
     .then((card) => res.send({ card }))
-    .catch(() => res.status(400).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные для снятия лайка' });
+      } else {
+        res.status(500).send({ message: 'Ошибка по умолчанию' });
+      }
+    });
 };
 
+// Экспорт модулей
 module.exports = {
   getCards,
   createCard,
