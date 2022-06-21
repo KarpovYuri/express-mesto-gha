@@ -18,10 +18,11 @@ const createUser = (req, res) => {
 const getUserById = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
+    .orFail(() => res.status(404).send({ message: 'Пользователь по указанному _id не найден' }))
     .then((user) => {
       res.status(200).send({ data: user });
     })
-    .catch((err) => res.status(400).send({ message: 'Такого пользователя не существует' }));
+    .catch((err) => res.status(400).send({ message: 'Произошла ошибка' }));
 };
 
 const updateUser = (req, res) => {
@@ -37,7 +38,7 @@ const updateAvatar = (req, res) => {
   const userId = req.user._id;
   User.findByIdAndUpdate(userId, { avatar })
     .then((users) => res.send(users))
-    .catch((err) => res.send({ message: 'Произошла ошибка' }));
+    .catch((err) => res.status(400).send({ message: 'Произошла ошибка' }));
 };
 
 module.exports = {
