@@ -23,9 +23,13 @@ const createUser = (req, res) => {
 // Получить данные пользователя по id
 const getUserById = (req, res) => {
   User.findById(req.params.userId)
-    .orFail(() => res.status(404).send({ message: 'Пользователь по указанному _id не найден' }))
+    .orFail(() => { throw new Error('NotFound'); })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
+      if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+        return;
+      }
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Переданы некорректные данные при поиске пользователя' });
       } else {
@@ -38,9 +42,13 @@ const getUserById = (req, res) => {
 const updateUser = (req, res) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
+    .orFail(() => { throw new Error('NotFound'); })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
+      if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
+        return;
+      }
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
       } else {
@@ -53,9 +61,13 @@ const updateUser = (req, res) => {
 const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
+    .orFail(() => { throw new Error('NotFound'); })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
+      if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
+        return;
+      }
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара' });
       } else {
