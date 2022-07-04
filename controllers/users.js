@@ -1,5 +1,8 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+
+const { NODE_ENV, JWT_SECRET } = process.env;
 
 const getUsers = (req, res) => {
   User.find({})
@@ -88,6 +91,32 @@ const updateAvatar = (req, res) => {
     });
 };
 
+// Вход пользователя
+const login = (req, res) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials({ email, password })
+    .orFail(() => { throw new Error('NotFound'); })
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-key', { expiresIn: '7d' });
+      res.cookie('jwt', token, {
+        httpOnly: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      res.send({ message: 'Вход выполнен успешно' });
+    })
+    .catch((err) => {
+      if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
+        return;
+      }
+      if (err.name === 'ValidationError') {
+        res.status(401).send({ message: 'Неверный логин или пароль' });
+      } else {
+        res.status(500).send({ message: 'Ошибка по умолчанию' });
+      }
+    });
+};
+
 // Экспорт модулей
 module.exports = {
   getUsers,
@@ -95,4 +124,5 @@ module.exports = {
   getUserById,
   updateUser,
   updateAvatar,
+  login,
 };
