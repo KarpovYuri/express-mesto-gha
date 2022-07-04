@@ -35,6 +35,20 @@ const createUser = (req, res) => {
     });
 };
 
+// Получить данные о пользователе
+const getUser = (req, res) => {
+  User.findById(req.user._id)
+    .orFail(() => { throw new Error('NotFound'); })
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Пользователь не найден' });
+      } else {
+        res.status(500).send({ message: 'Ошибка по умолчанию' });
+      }
+    });
+};
+
 // Получить данные пользователя по id
 const getUserById = (req, res) => {
   User.findById(req.params.userId)
@@ -120,6 +134,7 @@ const login = (req, res) => {
 // Экспорт модулей
 module.exports = {
   getUsers,
+  getUser,
   createUser,
   getUserById,
   updateUser,
