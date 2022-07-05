@@ -24,10 +24,18 @@ const createUser = (req, res) => {
         email,
         password: hash,
       })
-        .then((user) => res.send({ data: user.toJSON() }))
+        .then((user) => {
+          const newUser = user.toObject();
+          delete newUser.password;
+          res.send({ data: newUser });
+        })
         .catch((err) => {
           if (err.name === 'ValidationError') {
             res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя' });
+            return;
+          }
+          if (err.code === 11000) {
+            res.status(409).send({ message: 'Пользователем с такими e-mail уже существует' });
           } else {
             res.status(500).send({ message: 'Ошибка по умолчанию' });
           }
@@ -105,26 +113,21 @@ const updateAvatar = (req, res) => {
     });
 };
 
-// Вход пользователя
+// Авторизация пользователя
 const login = (req, res) => {
   const { email, password } = req.body;
   User.findUserByCredentials({ email, password })
-    .orFail(() => { throw new Error('NotFound'); })
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-key', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'some-secret-key', { expiresIn: '7d' });
       res.cookie('jwt', token, {
-        httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
       });
-      res.send({ message: 'Вход выполнен успешно' });
+      res.status(200).send({ message: 'Авторизация прошла успешно' });
     })
     .catch((err) => {
-      if (err.message === 'NotFound') {
-        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
-        return;
-      }
-      if (err.name === 'ValidationError') {
-        res.status(401).send({ message: 'Неверный логин или пароль' });
+      if (err.message === 'AuthError') {
+        res.status(401).send({ message: 'При авторизации переданы некорректные почта или пароль' });
       } else {
         res.status(500).send({ message: 'Ошибка по умолчанию' });
       }
