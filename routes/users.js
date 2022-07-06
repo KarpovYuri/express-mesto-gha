@@ -39,7 +39,7 @@ router.patch(
   celebrate({
     body: Joi.object().keys({
       // eslint-disable-next-line no-useless-escape
-      avatar: Joi.string().required().regex(/^(https?:\/\/)?(www\.)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w\.-]*)*\/?$/),
+      avatar: Joi.string().required().regex(/(^https?:\/\/)?[a-z0-9~_\-\.]+\.[a-z]{2,9}(\/|:|\?[!-~]*)?$/i),
     }),
   }),
   updateAvatar,
