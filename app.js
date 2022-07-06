@@ -7,6 +7,7 @@ const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const NotFoundError = require('./errors/not-found-err');
 
 const { PORT = 3000 } = process.env;
 
@@ -48,10 +49,13 @@ app.use(auth);
 app.use('/', userRoutes);
 app.use('/', cardRoutes);
 
-app.use((req, res) => {
-  res.status(404).send({ message: 'Страницы не существует' });
-});
+app.use('*', (req, res, next) => next(new NotFoundError('Страницы не существует')));
 
 app.use(errors());
+
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+  res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка по умолчанию' : message });
+});
 
 app.listen(PORT, () => { });

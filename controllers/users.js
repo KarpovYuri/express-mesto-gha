@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const NotFoundError = require('../errors/not-found-err');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -44,72 +45,51 @@ const createUser = (req, res) => {
 };
 
 // Получить данные о пользователе
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail(() => { throw new Error('NotFound'); })
+    .orFail(() => { throw new NotFoundError('Пользователь не найден'); })
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.message === 'NotFound') {
-        res.status(404).send({ message: 'Пользователь не найден' });
-      } else {
-        res.status(500).send({ message: 'Ошибка по умолчанию' });
-      }
-    });
+    .catch(next);
 };
 
 // Получить данные пользователя по id
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(() => { throw new Error('NotFound'); })
+    .orFail(() => { throw new NotFoundError('Пользователь не найден'); })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.message === 'NotFound') {
-        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
-        return;
-      }
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Переданы некорректные данные при поиске пользователя' });
-      } else {
-        res.status(500).send({ message: 'Ошибка по умолчанию' });
       }
+      next(err);
     });
 };
 
 // Обновление пользователя
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => { throw new Error('NotFound'); })
+    .orFail(() => { throw new NotFoundError('Пользователь с указанным _id не найден'); })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.message === 'NotFound') {
-        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
-        return;
-      }
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
-      } else {
-        res.status(500).send({ message: 'Ошибка по умолчанию' });
       }
+      next(err);
     });
 };
 
 // Обновление аватара
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(() => { throw new Error('NotFound'); })
+    .orFail(() => { throw new NotFoundError('Пользователь с указанным _id не найден'); })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.message === 'NotFound') {
-        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
-        return;
-      }
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара' });
-      } else {
-        res.status(500).send({ message: 'Ошибка по умолчанию' });
       }
+      next(err);
     });
 };
 
