@@ -1,5 +1,6 @@
 const cardRouter = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
+const urlRegExp = require('../utils/url-regexp');
 
 const {
   getCards,
@@ -27,8 +28,7 @@ cardRouter.post(
   celebrate({
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
-      // eslint-disable-next-line no-useless-escape
-      link: Joi.string().required().regex(/(^https?:\/\/)?[a-z0-9~_\-\.]+\.[a-z]{2,9}(\/|:|\?[!-~]*)?$/i),
+      link: Joi.string().required().regex(urlRegExp),
     }),
   }),
   createCard,

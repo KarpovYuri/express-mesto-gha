@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const urlRegExp = require('../utils/url-regexp');
 
 // Опишем схему:
 const cardSchema = new mongoose.Schema({
@@ -11,6 +12,9 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => urlRegExp.test(v),
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,

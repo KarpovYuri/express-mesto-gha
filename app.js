@@ -8,6 +8,7 @@ const cardRoutes = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/not-found-err');
+const urlRegExp = require('./utils/url-regexp');
 
 const { PORT = 3000 } = process.env;
 
@@ -37,8 +38,7 @@ app.post(
       password: Joi.string().required().min(8),
       name: Joi.string().min(2).max(30),
       about: Joi.string().min(2).max(30),
-      // eslint-disable-next-line no-useless-escape
-      avatar: Joi.string().regex(/^(https?:\/\/)?(www\.)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w\.-]*)*\/?$/),
+      avatar: Joi.string().regex(urlRegExp),
     }),
   }),
   createUser,
@@ -56,6 +56,7 @@ app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка по умолчанию' : message });
+  next();
 });
 
 app.listen(PORT, () => { });

@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const AuthError = require('../errors/auth-err');
+const urlRegExp = require('../utils/url-regexp');
 
 // Опишем схему:
 const userSchema = new mongoose.Schema({
@@ -21,7 +23,7 @@ const userSchema = new mongoose.Schema({
     default:
       'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator: (v) => validator.isURL(v),
+      validator: (v) => urlRegExp.test(v),
     },
   },
   email: {
@@ -41,16 +43,17 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.statics.findUserByCredentials = function findUserByCredentials(email, password) {
+  const message = 'При авторизации переданы некорректные почта или пароль';
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('AuthError'));
+        return Promise.reject(new AuthError(message));
       }
 
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('AuthError'));
+            return Promise.reject(new AuthError(message));
           }
           return user;
         });
