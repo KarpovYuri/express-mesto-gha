@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-err');
 const BadRequestError = require('../errors/bad-request-err');
+const AuthError = require('../errors/auth-err');
+const ConflictError = require('../errors/conflict-err');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -34,10 +36,8 @@ const createUser = (req, res, next) => {
         .catch((err) => {
           if (err.name === 'ValidationError') {
             next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
-            return;
-          }
-          if (err.code === 11000) {
-            res.status(409).send({ message: 'Пользователем с такими e-mail уже существует' });
+          } else if (err.code === 11000) {
+            next(new ConflictError('Пользователем с такими e-mail уже существует'));
           }
           next(err);
         });
@@ -59,7 +59,7 @@ const getUserById = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при поиске пользователя' });
+        next(new BadRequestError('Переданы некорректные данные при поиске пользователя'));
       }
       next(err);
     });
@@ -73,7 +73,7 @@ const updateUser = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+        next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
       }
       next(err);
     });
@@ -87,7 +87,7 @@ const updateAvatar = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара' });
+        next(new BadRequestError('Переданы некорректные данные при обновлении аватара'));
       }
       next(err);
     });
@@ -107,7 +107,7 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.message === 'AuthError') {
-        res.status(401).send({ message: 'При авторизации переданы некорректные почта или пароль' });
+        next(new AuthError('При авторизации переданы некорректные почта или пароль'));
       }
       next(err);
     });
