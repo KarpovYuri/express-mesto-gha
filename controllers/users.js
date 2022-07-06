@@ -29,9 +29,9 @@ const createUser = (req, res, next) => {
         password: hash,
       })
         .then((user) => {
-          const newUser = user.toObject();
-          delete newUser.password;
-          res.send({ data: newUser });
+          const returnUser = user.toObject();
+          delete returnUser.password;
+          res.send({ data: returnUser });
         })
         .catch((err) => {
           if (err.name === 'ValidationError') {
