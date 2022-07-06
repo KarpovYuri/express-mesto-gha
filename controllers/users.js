@@ -2,17 +2,18 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-err');
+const BadRequestError = require('../errors/bad-request-err');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch(() => res.status(500).send({ message: 'Ошибка по умолчанию' }));
+    .catch(next);
 };
 
 // Создание пользоателя
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -32,14 +33,13 @@ const createUser = (req, res) => {
         })
         .catch((err) => {
           if (err.name === 'ValidationError') {
-            res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя' });
+            next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
             return;
           }
           if (err.code === 11000) {
             res.status(409).send({ message: 'Пользователем с такими e-mail уже существует' });
-          } else {
-            res.status(500).send({ message: 'Ошибка по умолчанию' });
           }
+          next(err);
         });
     });
 };
@@ -94,7 +94,7 @@ const updateAvatar = (req, res, next) => {
 };
 
 // Авторизация пользователя
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   User.findUserByCredentials({ email, password })
     .then((user) => {
@@ -108,9 +108,8 @@ const login = (req, res) => {
     .catch((err) => {
       if (err.message === 'AuthError') {
         res.status(401).send({ message: 'При авторизации переданы некорректные почта или пароль' });
-      } else {
-        res.status(500).send({ message: 'Ошибка по умолчанию' });
       }
+      next(err);
     });
 };
 
