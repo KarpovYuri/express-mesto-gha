@@ -26,10 +26,10 @@ app.post(
   celebrate({
     body: Joi.object().keys({
       email: Joi.string().required().email(),
-      password: Joi.string().required().min(8),
-    }),
+      password: Joi.string().required().min(8)
+    })
   }),
-  login,
+  login
 );
 app.post(
   '/signup',
@@ -39,10 +39,10 @@ app.post(
       password: Joi.string().required().min(8),
       name: Joi.string().min(2).max(30),
       about: Joi.string().min(2).max(30),
-      avatar: Joi.string().regex(urlRegExp),
-    }),
+      avatar: Joi.string().regex(urlRegExp)
+    })
   }),
-  createUser,
+  createUser
 );
 
 app.use(auth);
@@ -61,7 +61,8 @@ app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка по умолчанию' : message });
+
   next();
 });
 
-app.listen(PORT, () => { });
+app.listen(PORT, () => {});
